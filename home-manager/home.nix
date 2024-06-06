@@ -110,12 +110,22 @@
 	  mv = "mv iv";
 	  rm = "trash-put";
 	  cat = "bat";
-	  ls = "eza --grid --iconss";
+	  ls = "eza --grid --icons";
 	  ll = "eza -l --grid --icons";
 	  la = "eza -a --grid --icons";
 	  lt = "eza --tree --grid --icons";
 	  lla = "eza -la --grid --icons";
-	};
+	  gst = "git status";
+          gco = "git checkout";
+          gcm = "git commit -m";
+          gpull = "git pull";
+          gpush = "git push";
+        };
+  };
+
+  # NUSHELL
+  programs.nushell = {
+    enable = true;
   };
 
   # STARSHIP
@@ -138,8 +148,15 @@
 	enable = true;
 	shortcut = "a";
 	mouse = true;
+        aggressiveResize = true;
+        baseIndex = 1;
+        newSession = true;
+        escapeTime = 500;
+        clock24 = false;
+        terminal = "screen-256color";
+        sensibleOnTop = true;
 	plugins = with pkgs.tmuxPlugins; [
-	  sensible
+	  # sensible
 	  pain-control
 	  yank
 	  prefix-highlight
@@ -154,25 +171,94 @@
 	vimAlias = true;
 	withPython3 = true;
 	plugins = with pkgs.vimPlugins; [
-	  neovim-sensible
+	  # neovim-sensible
 	  nvim-surround
 	  nvim-treesitter
-	  nvim-cmp
-	  vim-airline
-	  vim-airline-themes
+	  vim-vsnip
+	  cmp-vsnip
+	  {
+	    plugin = nvim-cmp;
+	    type = "lua";
+	    config = '' 
+		 local cmp = require'cmp'
+
+  			cmp.setup({
+    			snippet = {
+     			 -- REQUIRED - you must specify a snippet engine
+      			expand = function(args)
+        		vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+        		-- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+        		-- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+        		-- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+        		-- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
+      			end,
+    			},
+    			window = {
+      			-- completion = cmp.config.window.bordered(),
+     			-- documentation = cmp.config.window.bordered(),
+    			},
+    			mapping = cmp.mapping.preset.insert({
+      			['<C-b>'] = cmp.mapping.scroll_docs(-4),
+      			['<C-f>'] = cmp.mapping.scroll_docs(4),
+     			['<C-Space>'] = cmp.mapping.complete(),
+      			['<C-e>'] = cmp.mapping.abort(),
+      			['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    			}),
+    			sources = cmp.config.sources({
+      			{ name = 'nvim_lsp' },
+      			{ name = 'vsnip' }, -- For vsnip users.
+      			-- { name = 'luasnip' }, -- For luasnip users.
+      			-- { name = 'ultisnips' }, -- For ultisnips users.
+      			-- { name = 'snippy' }, -- For snippy users.
+    			}, {
+      			{ name = 'buffer' },
+    			})
+  			})
+	    '';
+	  }
+	  {
+	    plugin = cmp-nvim-lsp;
+	    type = "lua";
+	    config = '' 
+		local capabilities = require('cmp_nvim_lsp').default_capabilities()
+ 		require('lspconfig')['pyright'].setup {
+    		capabilities = capabilities
+  		}
+	    '';
+	  }
+	  #lazy lsp guide
+	  {
+	    plugin = lazy-lsp-nvim;
+	    type = "lua";
+	    config = '' 
+	      require('lazy-lsp').setup {
+        	 excluded_servers = {"diagnosticls", "pylsp", "efm", "jedi_language_server"},
+      	      }
+	    '';
+	  }
+
+	   vim-airline
+	   {
+	      plugin = vim-airline-themes;
+	      config = "let g:airline_theme='wombat'";
+	   }
+	  # vim-airline-themes
 	  # vim-airline-clock
 	  # vim-commantary
 	  # vim-fugitive
-	  vim-gitgutter
-	  vim-indent-guides
-	  dracula-nvim
+	  # vim-gitgutter
+	  # vim-indent-guides
+	  {
+            plugin = dracula-nvim;
+            config = ''
+              syntax enable
+              colorscheme dracula
+            '';
+          }
 	];
-	extraConfig = ''
-	  syntax enable
-	  colorscheme dracula
+	extraConfig = ''	  	  
 	  set cursorline
-	  set scrolloff=5
-	  let g:airline_theme='wombat'
+	  set scrolloff=5	  
 	'';
 
   };
